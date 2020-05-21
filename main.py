@@ -31,5 +31,9 @@ async def root(file: bytes = File(...)):
     img = np.array(image)
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     cv2.imwrite('a.jpg',img)
-    caption = generate_caption('a.jpg',5)
-    return {"caption":caption}
+    word_arr = generate_caption('a.jpg',5)
+    capation=""
+    for word in word_arr[1:-1]:
+        capation=capation+word+" "
+    capation=str.strip(capation)
+    return {"caption":capation}

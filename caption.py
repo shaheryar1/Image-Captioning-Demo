@@ -206,7 +206,7 @@ def generate_caption(img,beam_size):
     alphas = torch.FloatTensor(alphas)
     words = [rev_word_map[ind] for ind in seq]
     print(words)
-    return words[1:]
+    return words
 
 
 # generate_caption('test/bears.jpg',5)
