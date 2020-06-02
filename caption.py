@@ -229,7 +229,7 @@ def generate_caption(img,beam_size):
     return response
 
 
-# generate_caption('test/workers3.jpg',1)
+
 
 
 #

@@ -31,7 +31,19 @@ async def root(file: bytes = File(...)):
         img = np.array(image)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         cv2.imwrite('a.jpg',img)
-        response = generate_caption('a.jpg',1)
+        res = generate_caption('a.jpg',1)
+        caption = ""
+        words = []
+        for word, score in res.items():
+            caption = caption + " " + word
+            print(word, score)
+            word = {
+                "word": word,
+                "score": score
+            }
+            words.append(word)
+
+        response = {"caption": caption, "words": words}
 
         return response
     except Exception as e :
