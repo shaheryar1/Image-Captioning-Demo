@@ -76,6 +76,8 @@ def caption_image_beam_search(encoder, decoder, image_path, word_map, beam_size=
     step = 1
     h, c = decoder.init_hidden_state(encoder_out)
 
+    score_word_map={}
+
     # s is a number less than or equal to k, because sequences are removed from this process once they hit <end>
     while True:
 
@@ -91,18 +93,23 @@ def caption_image_beam_search(encoder, decoder, image_path, word_map, beam_size=
         h, c = decoder.decode_step(torch.cat([embeddings, awe], dim=1), (h, c))  # (s, decoder_dim)
 
         scores = decoder.fc(h)  # (s, vocab_size)
+
         scores = F.log_softmax(scores, dim=1)
 
         # Add
+
+        score_word_map[torch.argmax(scores[0]).item()]=torch.max(scores[0]).item()
+
         scores = top_k_scores.expand_as(scores) + scores  # (s, vocab_size)
 
         # For the first step, all k points will have the same scores (since same k previous words, h, c)
         if step == 1:
+
             top_k_scores, top_k_words = scores[0].topk(k, 0, True, True)  # (s)
         else:
             # Unroll and find top scores, and their unrolled indices
             top_k_scores, top_k_words = scores.view(-1).topk(k, 0, True, True)  # (s)
-
+        # print(top_k_words,top_k_scores)
         # Convert unrolled indices to actual indices of scores
         prev_word_inds = top_k_words / vocab_size  # (s)
         next_word_inds = top_k_words % vocab_size  # (s)
@@ -135,16 +142,19 @@ def caption_image_beam_search(encoder, decoder, image_path, word_map, beam_size=
         top_k_scores = top_k_scores[incomplete_inds].unsqueeze(1)
         k_prev_words = next_word_inds[incomplete_inds].unsqueeze(1)
 
+
+
         # Break if things have been going on too long
         if step > 50:
             break
         step += 1
 
     i = complete_seqs_scores.index(max(complete_seqs_scores))
+
     seq = complete_seqs[i]
     alphas = complete_seqs_alpha[i]
 
-    return seq, alphas
+    return seq, alphas,score_word_map
 
 
 def visualize_att(image_path, seq, alphas, rev_word_map, smooth=True):
@@ -163,7 +173,7 @@ def visualize_att(image_path, seq, alphas, rev_word_map, smooth=True):
     image = image.resize([14 * 24, 14 * 24], Image.LANCZOS)
 
     words = [rev_word_map[ind] for ind in seq]
-    print(words)
+
     for t in range(len(words)):
         if t > 50:
             break
@@ -202,14 +212,24 @@ def generate_caption(img,beam_size):
     rev_word_map = {v: k for k, v in word_map.items()}  # ix2word
 
     # Encode, decode with attention and beam search
-    seq, alphas = caption_image_beam_search(encoder, decoder, img, word_map, beam_size)
+    seq, alphas ,score_word_map= caption_image_beam_search(encoder, decoder, img, word_map, beam_size)
+
+
     alphas = torch.FloatTensor(alphas)
     words = [rev_word_map[ind] for ind in seq]
     print(words)
-    return words
+    response = {}
+    for ind in seq[1:-1]:
+        s=(score_word_map.get(ind))
+        if s is not None:
+            response[rev_word_map[ind]]=s
+        else:
+            response[rev_word_map[ind]]=-0.5
+    print(response)
+    return response
 
 
-# generate_caption('test/bears.jpg',5)
+# generate_caption('test/workers3.jpg',1)
 
 
 #
