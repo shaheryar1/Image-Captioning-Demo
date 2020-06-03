@@ -219,17 +219,21 @@ def generate_caption(img,beam_size):
     words = [rev_word_map[ind] for ind in seq]
     print(words)
     response = {}
+    response["words"]=[]
+    response["scores"]=[]
+
     for ind in seq[1:-1]:
         s=(score_word_map.get(ind))
+        response["words"].append(rev_word_map[ind])
         if s is not None:
-            response[rev_word_map[ind]]=s
+            response["scores"].append(s)
         else:
-            response[rev_word_map[ind]]=-0.5
-    print(response)
+            response["scores"].append(-0.5)
+
     return response
 
 
-
+# res=generate_caption('test/cat.jpg',1)
 
 
 #

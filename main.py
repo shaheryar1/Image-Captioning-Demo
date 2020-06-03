@@ -34,7 +34,7 @@ async def root(file: bytes = File(...)):
         res = generate_caption('a.jpg',1)
         caption = ""
         words = []
-        for word, score in res.items():
+        for word, score in zip(res["words"],res["scores"]):
             caption = caption + " " + word
             print(word, score)
             word = {
