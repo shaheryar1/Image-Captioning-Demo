@@ -2,7 +2,7 @@ numpy
 opencv-python
 scikit-image
 Pillow
-scipy==1.1.0
+scipy==1.10.0
 nltk
 matplotlib
 tqdm
